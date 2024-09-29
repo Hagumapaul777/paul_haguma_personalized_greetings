@@ -1,14 +1,78 @@
 #!/bin/bash
+SECONDS=0
+now=`date "+%F-%H%M%S"`
+date_now=`date "+%F-%H:%M:%S"`
 
-IMA="ami-04a81a99f5ec58529"
-Instance_type="t2.micro"
-keys="13th_july_2024_personalized_greetings"
-sec_group="launch-wizard-5"
-Intance_name=$1
+# Path to your SSH key
+KEY_TO_SSH_REMOTE_EC2="~/.ssh/13th_july_2024_personalized_greetings.pem"
 
-aws ec2 run-instances \
---image-id $IMA \
---instance-type $Instance_type \
---key-name $keys \
---security-groups $sec_group \
---tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$1}]"
+# AWS EC2 instance details
+image_id="ami-04a81a99f5ec58529"
+instance_type="t2.micro"
+key_name="13th_july_2024_personalized_greetings"
+security_groups="launch-wizard-5"
+
+# Launch a new EC2 instance
+EC2_ID=$(aws ec2 run-instances \
+--image-id $image_id \
+--instance-type $instance_type \
+--key-name $key_name \
+--security-groups $security_groups \
+--tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$1-$EPOCHSECONDS-$$}]" | jq -r '.Instances[0].InstanceId')
+
+# Wait until the instance is in the running state to retrieve the public IP
+aws ec2 wait instance-running --instance-ids "$EC2_ID"
+
+# Retrieve the public IP address of the EC2 instance
+EC2_PUBLIC_IP=$(aws ec2 describe-instances --instance-ids $EC2_ID | jq -r '.Reservations[0].Instances[].PublicIpAddress')
+
+echo "Instance ID: $EC2_ID"
+echo "Public IP: $EC2_PUBLIC_IP"
+sleep 20
+#Moving keys to a new created EC2 
+scp -o StrictHostKeyChecking=off -i "~/.ssh/13th_july_2024_personalized_greetings.pem" ~/.ssh/config  ubuntu@$EC2_PUBLIC_IP:~/.ssh/config
+cat ~/.ssh/Paulh-keys >> /tmp/Paulh-keys
+sleep 5
+scp -o StrictHostKeyChecking=off -i "~/.ssh/13th_july_2024_personalized_greetings.pem" /tmp/Paulh-keys  ubuntu@$EC2_PUBLIC_IP:~/.ssh/Paulh-keys
+
+rm /tmp/Paulh-keys
+
+# Connect to the EC2 instance via SSH and run commands
+ssh -i "$KEY_TO_SSH_REMOTE_EC2" -o StrictHostKeyChecking=no "ubuntu@$EC2_PUBLIC_IP" << EOF
+    echo "Connected to EC2 Instance $EC2_ID"
+   
+    git clone https://github.com/Hagumapaul777/paul_haguma_personalized_greetings.git
+
+   echo “Project paul_haguma_personalized_greetings is successful clone”
+   
+    sudo apt update -y
+    sudo apt upgrade -y
+    sudo apt install nginx -y
+    
+    
+    sudo rm /etc/nginx/sites-available/default
+    sudo rm /etc/nginx/sites-enabled/default
+    sudo cp /home/ubuntu/paul_haguma_personalized_greetings/personalized_greeting.conf /etc/nginx/sites-enabled/personalized_greeting.conf
+    sudo mkdir -p /var/www/html/greeting
+    sudo cp /home/ubuntu/paul_haguma_personalized_greetings/index.html /home/ubuntu/paul_haguma_personalized_greetings/script.js /var/www/html/greeting/
+
+
+    # Check Nginx status
+    if systemctl is-active --quiet nginx; then
+        echo "Nginx is running"
+        # Check Nginx configuration syntax
+        if sudo nginx -t; then
+            echo "Nginx configuration is OK"
+        else
+            echo "Nginx configuration has errors. Please check the error log for details."
+        fi
+    else
+        echo "Nginx is not running"
+    fi
+    sudo service nginx restart 
+EOF
+date_now=`date "+%F-%H:%M:%S"`
+duration=$SECONDS
+echo "The script took $(($duration / 60)) minutes and $(($duration % 60)) seconds."
+duration_taken="The script took $(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+echo "Public IP: $EC2_PUBLIC_IP"
