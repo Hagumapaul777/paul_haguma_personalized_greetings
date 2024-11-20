@@ -1,3 +1,12 @@
+terraform {
+ backend "s3"{
+    region = "eu-west-1"
+    key = "my-test-ec2"
+    bucket = "paul-tfstate-file"
+    }
+    
+}
+
 module "ec2_instance" {
   source        = "./../modules/ec2_personlized_greating/"   # Path to your module
   ami           = "ami-04a81a99f5ec58529"    # Replace with the correct AMI ID

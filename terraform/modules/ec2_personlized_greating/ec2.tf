@@ -1,12 +1,3 @@
-terraform {
- backend "s3"{
-    region = "eu-west-1"
-    key = "my-test-ec2"
-    bucket = "paul-tfstate-file"
-    }
-    
-}
-
 resource "aws_instance" "ec2" {
   ami           = var.ami
   instance_type = var.instance_type
