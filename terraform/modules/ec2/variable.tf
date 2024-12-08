@@ -1,9 +1,3 @@
-variable "region" {
-  description = "AWS region where the EC2 instance will be created"
-  type        = string
-  default     = "us-east-1"  # Default region
-}
-
 variable "ami" {
   description = "AMI ID for the EC2 instance"
   type        = string
@@ -23,5 +17,10 @@ variable "key_name" {
 
 variable "instance_name" {
   description = "instance"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "The ID of the subnet where the EC2 instance will be launched"
   type        = string
 }
