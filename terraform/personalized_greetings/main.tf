@@ -18,14 +18,11 @@ module "vpc" {
   }
 }
 
-
-
 module "ec2" {
   source        = "./../modules/ec2/"   # Path to your module
   ami           = "ami-0e9085e60087ce171"    # Replace with the correct AMI ID
   instance_type = "t2.micro"                  # EC2 instance type
-  key_name      = "13th_july_2024_personalized_greetings"                # Replace with your SSH key name
+  key_name      = "test-key12"                # Replace with your SSH key name
   instance_name = "Assignment_machine2"
-                # AWS region (optional)
   subnet_id = element(module.vpc.public_subnet_ids, 0)
 }
