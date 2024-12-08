@@ -7,9 +7,6 @@ resource "aws_instance" "ec2" {
   tags = {
     Name = var.instance_name
   }
-
-  security_groups = ["default"]
-
 }
 
 output "instance_public_ip" {

@@ -1,9 +1,3 @@
-variable "region" {
-  description = "AWS region where the EC2 instance will be created"
-  type        = string
-  default     = "us-east-1"  # Default region
-}
-
 variable "ami" {
   description = "AMI ID for the EC2 instance"
   type        = string
