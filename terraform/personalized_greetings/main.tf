@@ -1,7 +1,7 @@
 terraform {
  backend "s3"{
     region = "eu-west-1"
-    key = "my-test-ec2"
+    key = "my-test-vpc"
     bucket = "paul-tfstate-file"
     }
     
@@ -13,16 +13,7 @@ module "vpc" {
   public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
   private_subnet_cidrs = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
   default_tags = {
-    Environment = "Dev"
+    Environment = ""
     Project     = "Personalized-Greetings"
   }
-}
-
-module "ec2" {
-  source        = "./../modules/ec2/"   # Path to your module
-  ami           = "ami-0e9085e60087ce171"    # Replace with the correct AMI ID
-  instance_type = "t2.micro"                  # EC2 instance type
-  key_name      = "test-key12"                # Replace with your SSH key name
-  instance_name = "Assignment_machine2"
-  subnet_id = element(module.vpc.public_subnet_ids, 0)
 }
